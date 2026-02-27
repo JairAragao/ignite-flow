@@ -1,78 +1,68 @@
 const chalk = require('chalk')
-const config = require('../core/config')
 const git = require('../core/git')
+const { t } = require('../core/i18n')
+const { withConfig, requireCleanWorkTree } = require('../core/middleware')
+const { getLastVersion, bumpMinor, formatTag } = require('../core/version')
+const { MergeConflictError, handleError } = require('../core/error')
 
-function releaseApply() {
-  const cfg = config.load()
-  if (!cfg) {
-    console.error(chalk.red('Ignite Flow nao configurado. Execute "ignite init" primeiro.'))
-    process.exit(1)
-  }
-
-  if (git.hasUncommittedChanges()) {
-    console.error(chalk.red('Voce tem alteracoes nao commitadas. Commite ou stash antes de continuar.'))
-    process.exit(1)
-  }
+const releaseApply = withConfig((cfg, options = {}) => {
+  requireCleanWorkTree()
 
   const currentBranch = git.getCurrentBranch()
   if (currentBranch !== cfg.developBranch) {
-    console.error(chalk.red(`Voce precisa estar na branch "${cfg.developBranch}" para executar release apply.`))
+    console.error(chalk.red(t('common.needDevelop', { branch: cfg.developBranch })))
     process.exit(1)
   }
 
   const lastTag = getLastVersion(cfg)
   const newVersion = bumpMinor(lastTag)
-  const tagName = `${cfg.versionTagPrefix}${newVersion}`
+  const tagName = formatTag(cfg, newVersion)
+  const mergeMsg = `Merge ${cfg.developBranch} into ${cfg.mainBranch} [ignite-flow]`
 
-  console.log(chalk.cyan.bold('\n  Ignite Flow - Release Apply (fast)\n'))
-  console.log(chalk.gray(`  Ultima tag: ${cfg.versionTagPrefix}${lastTag}`))
-  console.log(chalk.white(`  Nova tag:   ${tagName}\n`))
+  console.log(chalk.cyan.bold(`\n  ${t('releaseApply.title')}\n`))
+  console.log(chalk.gray(`  ${t('common.lastTag', { tag: `${cfg.versionTagPrefix}${lastTag}` })}`))
+  console.log(chalk.white(`  ${t('common.newTag', { tag: tagName })}\n`))
+
+  if (options.dryRun) {
+    console.log(chalk.yellow(t('common.dryRun')))
+    return
+  }
 
   // Pull develop
-  console.log(chalk.cyan(`Atualizando "${cfg.developBranch}"...`))
+  console.log(chalk.cyan(t('common.updating', { branch: cfg.developBranch })))
   git.pull(cfg.developBranch)
 
   // Checkout main and pull
-  console.log(chalk.cyan(`Atualizando "${cfg.mainBranch}"...`))
+  console.log(chalk.cyan(t('common.updating', { branch: cfg.mainBranch })))
   git.checkout(cfg.mainBranch)
   git.pull(cfg.mainBranch)
 
   // Merge develop into main
-  console.log(chalk.cyan(`Fazendo merge de "${cfg.developBranch}" em "${cfg.mainBranch}"...`))
-  git.merge(cfg.developBranch)
+  console.log(chalk.cyan(t('common.mergingFrom', { from: cfg.developBranch, to: cfg.mainBranch })))
+  if (!git.safeMerge(cfg.developBranch, mergeMsg)) {
+    git.abortMerge()
+    git.checkout(cfg.developBranch)
+    handleError(new MergeConflictError(cfg.developBranch, cfg.mainBranch), t)
+  }
 
   // Create tag
-  console.log(chalk.cyan(`Criando tag "${tagName}"...`))
+  console.log(chalk.cyan(t('common.creatingTag', { tag: tagName })))
   git.createTag(tagName, `Release: ${newVersion}`)
 
-  // Push main and tag
-  console.log(chalk.cyan('Fazendo push (main e tag)...'))
-  git.pushBranch(cfg.mainBranch)
-  git.pushTag(tagName)
+  // Push
+  if (!options.noPush) {
+    console.log(chalk.cyan(t('common.pushing', { targets: 'main, tag' })))
+    git.pushBranch(cfg.mainBranch)
+    git.pushTag(tagName)
+  } else {
+    console.log(chalk.yellow(t('common.skippingPush')))
+  }
 
   // Back to develop
   git.checkout(cfg.developBranch)
 
-  console.log(chalk.green.bold(`\nRelease apply concluido! Tag: ${tagName}`))
-  console.log(chalk.gray(`Voce esta de volta na branch "${cfg.developBranch}".`))
-}
-
-// Helpers
-function getLastVersion(cfg) {
-  const tags = git.getTags()
-  const prefix = cfg.versionTagPrefix
-  const versionTags = tags
-    .map(t => t.replace(prefix, ''))
-    .filter(t => /^\d+\.\d+\.\d+/.test(t))
-
-  return versionTags.length > 0 ? versionTags[0] : '0.0.0'
-}
-
-function bumpMinor(version) {
-  const parts = version.split('.')
-  parts[1] = parseInt(parts[1] || 0) + 1
-  parts[2] = 0
-  return parts.join('.')
-}
+  console.log(chalk.green.bold(`\n${t('releaseApply.success', { tag: tagName })}`))
+  console.log(chalk.gray(t('common.backToBranch', { branch: cfg.developBranch })))
+})
 
 module.exports = releaseApply

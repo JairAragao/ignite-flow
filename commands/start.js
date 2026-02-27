@@ -1,16 +1,11 @@
 const chalk = require('chalk')
-const config = require('../core/config')
 const git = require('../core/git')
+const { t } = require('../core/i18n')
+const { withConfig, requireCleanWorkTree } = require('../core/middleware')
 
-function start(type, name) {
-  const cfg = config.load()
-  if (!cfg) {
-    console.error(chalk.red('Ignite Flow nao configurado. Execute "ignite init" primeiro.'))
-    process.exit(1)
-  }
-
+const start = withConfig((cfg, type, name, options = {}) => {
   if (!name) {
-    console.error(chalk.red('Informe o nome da branch. Ex: ignite start feature minha-feature'))
+    console.error(chalk.red(t('start.missingName')))
     process.exit(1)
   }
 
@@ -21,32 +16,40 @@ function start(type, name) {
   }
 
   if (!validTypes[type]) {
-    console.error(chalk.red(`Tipo invalido: "${type}". Use: feature, hotfix ou release.`))
+    console.error(chalk.red(t('start.invalidType', { type })))
     process.exit(1)
   }
 
   const { prefix, from } = validTypes[type]
   const branchName = `${prefix}${name}`
 
+  if (!git.isValidBranchName(branchName)) {
+    console.error(chalk.red(t('error.invalidBranchChars')))
+    process.exit(1)
+  }
+
   if (git.branchExists(branchName)) {
-    console.error(chalk.red(`Branch "${branchName}" ja existe.`))
+    console.error(chalk.red(t('start.branchExists', { branch: branchName })))
     process.exit(1)
   }
 
-  if (git.hasUncommittedChanges()) {
-    console.error(chalk.red('Voce tem alteracoes nao commitadas. Commite ou stash antes de continuar.'))
-    process.exit(1)
+  requireCleanWorkTree()
+
+  if (options.dryRun) {
+    console.log(chalk.cyan(t('start.creating', { branch: branchName, from })))
+    console.log(chalk.yellow(t('common.dryRun')))
+    return
   }
 
-  console.log(chalk.cyan(`Atualizando "${from}"...`))
+  console.log(chalk.cyan(t('common.updating', { branch: from })))
   git.checkout(from)
   git.pull(from)
 
-  console.log(chalk.cyan(`Criando branch "${branchName}" a partir de "${from}"...`))
+  console.log(chalk.cyan(t('start.creating', { branch: branchName, from })))
   git.createAndCheckout(branchName, from)
 
-  console.log(chalk.green.bold(`\nBranch "${branchName}" criada e checkout realizado!`))
-  console.log(chalk.gray(`Baseada em: ${from}`))
-}
+  console.log(chalk.green.bold(`\n${t('start.success', { branch: branchName })}`))
+  console.log(chalk.gray(t('start.basedOn', { from })))
+})
 
 module.exports = start

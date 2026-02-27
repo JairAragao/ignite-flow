@@ -51,13 +51,31 @@ function pull(branch) {
   }
 }
 
-function merge(branch, noFf = true) {
+function merge(branch, message, noFf = true) {
   const flag = noFf ? '--no-ff' : ''
-  exec(`git merge ${flag} ${branch}`)
+  const msgFlag = message ? `-m "${message}"` : ''
+  exec(`git merge ${flag} ${msgFlag} ${branch}`)
+}
+
+function safeMerge(branch, message, noFf = true) {
+  try {
+    merge(branch, message, noFf)
+    return true
+  } catch {
+    return false
+  }
 }
 
 function deleteBranch(branch) {
   exec(`git branch -d ${branch}`)
+}
+
+function deleteRemoteBranch(branch) {
+  try {
+    exec(`git push origin --delete ${branch}`)
+  } catch {
+    // remote branch may not exist
+  }
 }
 
 function getTags() {
@@ -101,6 +119,23 @@ function pushTag(tag) {
   exec(`git push origin ${tag}`)
 }
 
+function abortMerge() {
+  try {
+    exec('git merge --abort')
+  } catch {
+    // no merge to abort
+  }
+}
+
+function isValidBranchName(name) {
+  try {
+    exec(`git check-ref-format --branch "${name}"`)
+    return true
+  } catch {
+    return false
+  }
+}
+
 module.exports = {
   exec,
   getCurrentBranch,
@@ -111,11 +146,15 @@ module.exports = {
   createAndCheckout,
   pull,
   merge,
+  safeMerge,
   deleteBranch,
+  deleteRemoteBranch,
   getTags,
   createTag,
   hasUncommittedChanges,
   getLog,
   pushBranch,
   pushTag,
+  abortMerge,
+  isValidBranchName,
 }
