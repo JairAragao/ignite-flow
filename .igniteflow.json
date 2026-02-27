@@ -1,9 +1,0 @@
-{
-  "language": "pt",
-  "mainBranch": "main",
-  "developBranch": "develop",
-  "featurePrefix": "feature/",
-  "hotfixPrefix": "hotfix/",
-  "releasePrefix": "release/",
-  "versionTagPrefix": ""
-}
