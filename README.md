@@ -11,7 +11,11 @@ CLI para gerenciamento de branches baseado no Git Flow, mais dinâmico e rápido
 ### Instalação
 
 ```bash
+# Global (recomendado)
 npm install -g ignite-flow
+
+# Ou como devDependency no projeto
+npm install -D ignite-flow
 ```
 
 ### Comandos
@@ -115,7 +119,11 @@ CLI for branch management based on Git Flow, more dynamic and faster.
 ### Installation
 
 ```bash
+# Global (recommended)
 npm install -g ignite-flow
+
+# Or as devDependency in your project
+npm install -D ignite-flow
 ```
 
 ### Commands
@@ -219,7 +227,11 @@ CLI para gestion de ramas basado en Git Flow, mas dinamico y rapido.
 ### Instalacion
 
 ```bash
+# Global (recomendado)
 npm install -g ignite-flow
+
+# O como devDependency en el proyecto
+npm install -D ignite-flow
 ```
 
 ### Comandos
