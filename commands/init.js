@@ -2,21 +2,38 @@ const inquirer = require('inquirer')
 const chalk = require('chalk')
 const config = require('../core/config')
 const git = require('../core/git')
+const { t, setLang } = require('../core/i18n')
 
 async function init() {
-  console.log(chalk.cyan.bold('\n  Ignite Flow - Configuracao inicial\n'))
+  // Language selection first (always bilingual)
+  const { language } = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'language',
+      message: 'Selecione o idioma / Select language:',
+      choices: [
+        { name: 'Portugues', value: 'pt' },
+        { name: 'English', value: 'en' },
+        { name: 'Espanol', value: 'es' },
+      ],
+      default: 0,
+    },
+  ])
+  setLang(language)
+
+  console.log(chalk.cyan.bold(`\n  ${t('init.title')}\n`))
 
   if (config.exists()) {
     const { overwrite } = await inquirer.prompt([
       {
         type: 'confirm',
         name: 'overwrite',
-        message: 'Ja existe uma configuracao (.igniteflow.json). Deseja sobrescrever?',
+        message: t('init.overwriteConfirm'),
         default: false,
       },
     ])
     if (!overwrite) {
-      console.log(chalk.yellow('Configuracao mantida.'))
+      console.log(chalk.yellow(t('init.configKept')))
       return
     }
   }
@@ -37,7 +54,7 @@ async function init() {
     {
       type: 'input',
       name: 'mainBranch',
-      message: 'Branch principal (producao):',
+      message: t('init.mainBranch'),
       default: suggestedMain,
     },
   ])
@@ -54,32 +71,32 @@ async function init() {
     {
       type: 'input',
       name: 'developBranch',
-      message: 'Branch de desenvolvimento:',
+      message: t('init.developBranch'),
       default: suggestedDevelop,
     },
   ])
 
   // Create develop if it doesn't exist
   if (!allBranches.includes(developBranch)) {
-    console.log(chalk.yellow(`Branch "${developBranch}" nao existe. Criando a partir de "${mainBranch}"...`))
+    console.log(chalk.yellow(t('init.branchNotExists', { branch: developBranch, from: mainBranch })))
     try {
       git.checkout(mainBranch)
       git.createAndCheckout(developBranch, mainBranch)
-      console.log(chalk.green(`Branch "${developBranch}" criada com sucesso.`))
+      console.log(chalk.green(t('init.branchCreated', { branch: developBranch })))
     } catch (err) {
-      console.error(chalk.red(`Erro ao criar branch "${developBranch}": ${err.message}`))
+      console.error(chalk.red(t('init.branchCreateError', { branch: developBranch, error: err.message })))
       process.exit(1)
     }
   }
 
   // Prefixes
-  console.log(chalk.cyan('\n  Prefixos de branches\n'))
+  console.log(chalk.cyan(`\n  ${t('init.prefixesTitle')}\n`))
 
   const { featurePrefix } = await inquirer.prompt([
     {
       type: 'input',
       name: 'featurePrefix',
-      message: 'Prefixo para features:',
+      message: t('init.featurePrefix'),
       default: 'feature/',
     },
   ])
@@ -88,7 +105,7 @@ async function init() {
     {
       type: 'input',
       name: 'hotfixPrefix',
-      message: 'Prefixo para hotfixes:',
+      message: t('init.hotfixPrefix'),
       default: 'hotfix/',
     },
   ])
@@ -97,28 +114,29 @@ async function init() {
     {
       type: 'input',
       name: 'releasePrefix',
-      message: 'Prefixo para releases:',
+      message: t('init.releasePrefix'),
       default: 'release/',
     },
   ])
 
   // Version tag prefix
-  console.log(chalk.cyan('\n  Versionamento\n'))
+  console.log(chalk.cyan(`\n  ${t('init.versioningTitle')}\n`))
 
   const { versionTagPrefix } = await inquirer.prompt([
     {
       type: 'list',
       name: 'versionTagPrefix',
-      message: 'Tags de versao devem ter prefixo "v" (ex: v1.0.0)?',
+      message: t('init.versionTagQuestion'),
       choices: [
-        { name: 'Sim - v1.0.0', value: 'v' },
-        { name: 'Nao - 1.0.0', value: '' },
+        { name: t('init.versionTagYes'), value: 'v' },
+        { name: t('init.versionTagNo'), value: '' },
       ],
       default: 0,
     },
   ])
 
   const cfg = {
+    language,
     mainBranch,
     developBranch,
     featurePrefix,
@@ -129,16 +147,16 @@ async function init() {
 
   config.save(cfg)
 
-  console.log(chalk.green.bold('\n  Ignite Flow configurado com sucesso!'))
-  console.log(chalk.gray(`  Arquivo: ${config.CONFIG_FILE}`))
+  console.log(chalk.green.bold(`\n  ${t('init.successTitle')}`))
+  console.log(chalk.gray(`  ${t('init.configFile', { file: config.CONFIG_FILE })}`))
   console.log()
-  console.log(chalk.white('  Configuracao salva:'))
-  console.log(chalk.gray(`    Branch principal:    ${mainBranch}`))
-  console.log(chalk.gray(`    Branch develop:      ${developBranch}`))
-  console.log(chalk.gray(`    Feature prefix:      ${featurePrefix}`))
-  console.log(chalk.gray(`    Hotfix prefix:       ${hotfixPrefix}`))
-  console.log(chalk.gray(`    Release prefix:      ${releasePrefix}`))
-  console.log(chalk.gray(`    Tag prefix:          ${versionTagPrefix || '(sem prefixo)'}`))
+  console.log(chalk.white(`  ${t('init.savedConfig')}`))
+  console.log(chalk.gray(`    ${t('init.labelMain')}    ${mainBranch}`))
+  console.log(chalk.gray(`    ${t('init.labelDevelop')}      ${developBranch}`))
+  console.log(chalk.gray(`    ${t('init.labelFeature')}      ${featurePrefix}`))
+  console.log(chalk.gray(`    ${t('init.labelHotfix')}       ${hotfixPrefix}`))
+  console.log(chalk.gray(`    ${t('init.labelRelease')}      ${releasePrefix}`))
+  console.log(chalk.gray(`    ${t('init.labelTag')}          ${versionTagPrefix || t('init.noPrefix')}`))
   console.log()
 }
 
