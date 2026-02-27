@@ -47,6 +47,7 @@ const start = withConfig((cfg, type, name, options = {}) => {
 
   console.log(chalk.cyan(t('start.creating', { branch: branchName, from })))
   git.createAndCheckout(branchName, from)
+  git.pushBranch(branchName)
 
   console.log(chalk.green.bold(`\n${t('start.success', { branch: branchName })}`))
   console.log(chalk.gray(t('start.basedOn', { from })))

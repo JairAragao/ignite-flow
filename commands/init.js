@@ -129,7 +129,6 @@ async function init() {
       type: 'input',
       name: 'versionTagPrefix',
       message: t('init.versionTagQuestion'),
-      default: 'v',
     },
   ])
 
