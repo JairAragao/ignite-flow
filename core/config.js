@@ -1,32 +1,53 @@
-const fs = require('fs')
-const path = require('path')
+const { execSync } = require('child_process')
 
-const CONFIG_FILE = '.igniteflow.json'
+const CONFIG_SECTION = 'igniteflow'
 
-function getConfigPath() {
-  return path.join(process.cwd(), CONFIG_FILE)
+function gitConfig(key, value) {
+  if (value !== undefined) {
+    execSync(`git config ${CONFIG_SECTION}.${key} "${value}"`, { encoding: 'utf-8' })
+  } else {
+    try {
+      return execSync(`git config ${CONFIG_SECTION}.${key}`, { encoding: 'utf-8' }).trim()
+    } catch {
+      return null
+    }
+  }
 }
 
 function exists() {
-  return fs.existsSync(getConfigPath())
+  return gitConfig('mainbranch') !== null
 }
 
 function load() {
-  const filePath = getConfigPath()
-  if (!fs.existsSync(filePath)) {
+  const mainBranch = gitConfig('mainbranch')
+  if (!mainBranch) {
     return null
   }
-  const raw = fs.readFileSync(filePath, 'utf-8')
-  return JSON.parse(raw)
+
+  return {
+    language: gitConfig('language') || 'pt',
+    mainBranch: mainBranch,
+    developBranch: gitConfig('developbranch') || 'develop',
+    featurePrefix: gitConfig('featureprefix') || 'feature/',
+    hotfixPrefix: gitConfig('hotfixprefix') || 'hotfix/',
+    releasePrefix: gitConfig('releaseprefix') || 'release/',
+    versionTagPrefix: gitConfig('versiontagprefix') || '',
+  }
 }
 
 function save(cfg) {
-  const filePath = getConfigPath()
-  fs.writeFileSync(filePath, JSON.stringify(cfg, null, 2) + '\n', 'utf-8')
+  gitConfig('language', cfg.language || 'pt')
+  gitConfig('mainbranch', cfg.mainBranch)
+  gitConfig('developbranch', cfg.developBranch)
+  gitConfig('featureprefix', cfg.featurePrefix)
+  gitConfig('hotfixprefix', cfg.hotfixPrefix)
+  gitConfig('releaseprefix', cfg.releasePrefix)
+  gitConfig('versiontagprefix', cfg.versionTagPrefix)
 }
 
 function defaultConfig() {
   return {
+    language: 'pt',
     mainBranch: 'main',
     developBranch: 'develop',
     featurePrefix: 'feature/',
@@ -41,5 +62,4 @@ module.exports = {
   load,
   save,
   defaultConfig,
-  CONFIG_FILE,
 }

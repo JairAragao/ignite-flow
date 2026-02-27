@@ -83,6 +83,8 @@ async function init() {
       git.checkout(mainBranch)
       git.createAndCheckout(developBranch, mainBranch)
       console.log(chalk.green(t('init.branchCreated', { branch: developBranch })))
+      git.pushBranch(developBranch)
+      console.log(chalk.green(t('init.branchPushed', { branch: developBranch })))
     } catch (err) {
       console.error(chalk.red(t('init.branchCreateError', { branch: developBranch, error: err.message })))
       process.exit(1)
@@ -124,14 +126,10 @@ async function init() {
 
   const { versionTagPrefix } = await inquirer.prompt([
     {
-      type: 'list',
+      type: 'input',
       name: 'versionTagPrefix',
       message: t('init.versionTagQuestion'),
-      choices: [
-        { name: t('init.versionTagYes'), value: 'v' },
-        { name: t('init.versionTagNo'), value: '' },
-      ],
-      default: 0,
+      default: 'v',
     },
   ])
 
@@ -148,7 +146,6 @@ async function init() {
   config.save(cfg)
 
   console.log(chalk.green.bold(`\n  ${t('init.successTitle')}`))
-  console.log(chalk.gray(`  ${t('init.configFile', { file: config.CONFIG_FILE })}`))
   console.log()
   console.log(chalk.white(`  ${t('init.savedConfig')}`))
   console.log(chalk.gray(`    ${t('init.labelMain')}    ${mainBranch}`))

@@ -1,14 +1,14 @@
 # Ignite Flow
 
-[Portugues](#portugues) | [English](#english) | [Espanol](#espanol)
+[Português](#portugues) | [English](#english) | [Espanol](#espanol)
 
 ---
 
-## Portugues
+## Português
 
-CLI para gerenciamento de branches baseado no Git Flow, mais dinamico e rapido.
+CLI para gerenciamento de branches baseado no Git Flow, mais dinâmico e rápido.
 
-### Instalacao
+### Instalação
 
 ```bash
 npm install -g ignite-flow
@@ -17,7 +17,7 @@ npm install -g ignite-flow
 ### Comandos
 
 #### `ignite init`
-Configura o repositorio. Detecta automaticamente as branches `main`/`master` e sugere defaults.
+Configura o repositório. Detecta automaticamente as branches `main`/`master` e sugere defaults.
 
 #### `ignite start <type> <name>`
 Cria uma nova branch a partir da base correta.
@@ -42,28 +42,27 @@ ignite release-apply   # ou ignite ra
 ```
 
 #### `ignite status`
-Overview completo: branch atual, features/hotfixes/releases ativas e ultimas tags.
+Overview completo: branch atual, features/hotfixes/releases ativas e últimas tags.
 
 #### `ignite tag`
-Lista todas as tags do repositorio.
+Lista todas as tags do repositório.
 
-### Configuracao
+### Configuração
 
-O `ignite init` cria um arquivo `.igniteflow.json` na raiz do projeto:
+O `ignite init` salva as configurações no `.git/config` do repositório (igual ao git-flow):
 
-```json
-{
-  "language": "pt",
-  "mainBranch": "main",
-  "developBranch": "develop",
-  "featurePrefix": "feature/",
-  "hotfixPrefix": "hotfix/",
-  "releasePrefix": "release/",
-  "versionTagPrefix": "v"
-}
+```ini
+[igniteflow]
+  language = pt
+  mainbranch = main
+  developbranch = develop
+  featureprefix = feature/
+  hotfixprefix = hotfix/
+  releaseprefix = release/
+  versiontagprefix = v
 ```
 
-Todos os prefixos sao personalizaveis durante o init.
+Todos os prefixos são personalizáveis durante o init.
 
 ---
 
@@ -112,18 +111,17 @@ Lists all repository tags.
 
 ### Configuration
 
-`ignite init` creates a `.igniteflow.json` file in the project root:
+`ignite init` saves configuration in the repository's `.git/config` (same as git-flow):
 
-```json
-{
-  "language": "en",
-  "mainBranch": "main",
-  "developBranch": "develop",
-  "featurePrefix": "feature/",
-  "hotfixPrefix": "hotfix/",
-  "releasePrefix": "release/",
-  "versionTagPrefix": "v"
-}
+```ini
+[igniteflow]
+  language = en
+  mainbranch = main
+  developbranch = develop
+  featureprefix = feature/
+  hotfixprefix = hotfix/
+  releaseprefix = release/
+  versiontagprefix = v
 ```
 
 All prefixes are customizable during init.
@@ -175,18 +173,17 @@ Lista todas las tags del repositorio.
 
 ### Configuracion
 
-`ignite init` crea un archivo `.igniteflow.json` en la raiz del proyecto:
+`ignite init` guarda la configuracion en el `.git/config` del repositorio (igual que git-flow):
 
-```json
-{
-  "language": "es",
-  "mainBranch": "main",
-  "developBranch": "develop",
-  "featurePrefix": "feature/",
-  "hotfixPrefix": "hotfix/",
-  "releasePrefix": "release/",
-  "versionTagPrefix": "v"
-}
+```ini
+[igniteflow]
+  language = es
+  mainbranch = main
+  developbranch = develop
+  featureprefix = feature/
+  hotfixprefix = hotfix/
+  releaseprefix = release/
+  versiontagprefix = v
 ```
 
 Todos los prefijos son personalizables durante el init.
