@@ -11,9 +11,10 @@ program
 program
   .command('init')
   .description('Configura o repositorio para usar o Ignite Flow')
-  .action(async () => {
+  .option('-f, --force', 'Sobrescreve configuracao existente sem perguntar')
+  .action(async (opts) => {
     const init = require('../commands/init')
-    await init()
+    await init({ force: opts.force })
   })
 
 program
