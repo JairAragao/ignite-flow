@@ -4,7 +4,7 @@ const config = require('../core/config')
 const git = require('../core/git')
 const { t, setLang } = require('../core/i18n')
 
-async function init() {
+async function init(options = {}) {
   // Language selection first (always bilingual)
   const { language } = await inquirer.prompt([
     {
@@ -23,7 +23,7 @@ async function init() {
 
   console.log(chalk.cyan.bold(`\n  ${t('init.title')}\n`))
 
-  if (config.exists()) {
+  if (config.exists() && !options.force) {
     const { overwrite } = await inquirer.prompt([
       {
         type: 'confirm',
