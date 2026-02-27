@@ -1,6 +1,6 @@
 {
   "name": "ignite-flow",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "CLI para gerenciamento de branches baseado no Git Flow, mais dinamico e rapido.",
   "main": "bin/ignite.js",
   "bin": {
